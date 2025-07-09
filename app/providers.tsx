@@ -1,4 +1,3 @@
-// recoil 관련 부분 제거 후 이렇게 정리
 'use client'
 
 import { ReactNode } from 'react'
