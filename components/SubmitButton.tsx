@@ -1,62 +1,77 @@
-import { setAIResponse } from "@/store/slices/aiSlice";
-import { addFeed } from "@/store/slices/feedSlice";
-import { useGenerateFromGemini } from '@/hooks/useGemini'
+import { createClient } from "@/utils/supabase/client"
+import { useGenerateFromGemini } from "@/hooks/useGemini"
+import { useGenerateDummyFeeds } from "@/hooks/useGenerateDummy"
+import { useDiary } from "@/app/context/DiaryContext"
+import { useFeed } from "@/context/FeedContext"
+import { v4 as uuidv4 } from "uuid"
 
-import type { RootState } from "@reduxjs/toolkit/query";
-import { useDispatch, useSelector } from "react-redux";
-import {v4 as uuidv4} from 'uuid'
+export default function SubmitButton(): JSX.Element {
+  const supabase = createClient()
+  const generateAI = useGenerateFromGemini()
+  const generateDummy = useGenerateDummyFeeds()
+  const { diary, emotions, resetDiary } = useDiary()
+  const { refreshFeeds } = useFeed()
 
+  const handleSubmit = async () => {
+    if (!diary.trim()) {
+      alert("일기를 작성해주세요.")
+      return
+    }
 
-export default function SubmitButton():JSX.Element {
-    const dispatch = useDispatch()
-    const generateAI = useGenerateFromGemini()
+    const prompt = `${diary}\n\n[감정: ${emotions.join(", ")}]에 대한한 공감과 위로가 담긴 짧은 문장을 작성해줘.`
 
-    const emotions = useSelector((state:RootState)=> state.emotion)
-    const diary = useSelector((state:RootState)=> state.diary.content)
+    try {
+      // Stream 시작
+      await generateAI.complete(prompt)
 
-    const handleSubmit = async () => {
-        if (!diary.trim()) {
-          alert('일기를 작성해주세요.')
-          return
-        }
-    
-        // ✅ 감정 + 일기를 하나의 prompt로 전달
-        const prompt = `${diary}\n\n[감정: ${emotions.join(', ')}]에 대한한 공감과 위로가 담긴 짧은 문장을 작성해줘.`
-    
-        try {
-          const aiResponse = await generateAI.mutateAsync(prompt)
-          
-    
-          // ✅ 1. AI 응답을 Redux에 저장
-          dispatch(setAIResponse(aiResponse))
-    
-          // ✅ 2. 피드에 추가
-          dispatch(
-            addFeed({
-              id: uuidv4(),
-              content: diary,
-              emotions,
-              aiResponse,
-              createdAt: new Date().toISOString(),
-            })
-          )
-        } catch (error) {
-          console.error('AI 생성 실패', error)
-          alert('AI 응답을 생성할 수 없습니다. 다시 시도해주세요.')
-        }
+      // 스트리밍이 완료된 후의 처리는 useEffect 등에서 처리하거나
+      // useCompletion의 onFinish 콜백을 활용해야 함.
+      // 여기서는 일단 트리거만 함.
+    } catch (error) {
+      console.error("AI 생성 실패", error)
+      alert("AI 응답을 생성할 수 없습니다. 다시 시도해주세요.")
+    }
+  }
+
+  const handleGenerateDummy = async () => {
+    try {
+      const dummyFeeds = await generateDummy.mutateAsync()
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
+      console.log("Dummy generation triggered (Redux removed)")
+      alert("더미 생성은 현재 DB 연동 중입니다.")
+
+      // 실제 구현 시에는 user check 후 Promise.all 등을 사용해야 함
+      /*
+      if (user) {
+        // ... bulk insert logic
       }
-    
+      */
+    } catch (e) {
+      console.error("더미 생성 실패", e)
+      alert("더미 데이터를 생성할 수 없음")
+    }
+  }
 
-    return (
-        <div className="flex justify-end">
-          <button
-            onClick={handleSubmit}
-            className="bg-blue-600 text-white px-6 py-2 rounded-md"
-          >
-            작성 완료
-          </button>
-        </div>
-      )
+  return (
+    <div className="flex justify-end mt-4 gap-2">
+      <button
+        onClick={handleSubmit}
+        className="bg-blue-600 text-white px-6 py-2 rounded-md"
+        disabled={generateAI.isLoading}
+      >
+        {generateAI.isLoading ? "작성 중..." : "작성 완료"}
+      </button>
+      <button
+        onClick={handleGenerateDummy}
+        className="bg-green-500 text-white px-6 py-2 rounded-md"
+        disabled={generateDummy.isPending}
+      >
+        {generateDummy.isPending ? "생성 중..." : "더미 생성"}
+      </button>
+    </div>
+  )
 }
-
-

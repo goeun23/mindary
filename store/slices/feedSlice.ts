@@ -1,11 +1,10 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
 
 interface FeedItem {
-    id:string
-    content:string
-    emotions:string[]
-    aiResponse:string
-    createdAt:string
+    id:Number, 
+    title:String, 
+    tags : Array<string>
+    
 }
 
 const initialState:FeedItem[] = []
@@ -14,10 +13,17 @@ export const feedSlice = createSlice({
     name:"feed", 
     initialState, 
     reducers: {
+        
         addFeed:(state, action:PayloadAction<FeedItem>)=> {
             state.unshift(action.payload)
         }, 
-        resetFeed:()=> []
+        // 피드 모두 삭제
+        resetFeed:()=> [], 
+
+        // 더미데이터 가져오기
+        getDummyFeed : (state, action:PayloadAction<FeedItem>) => {
+            
+        }
     }
 })
 

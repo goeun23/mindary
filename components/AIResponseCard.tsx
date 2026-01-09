@@ -1,14 +1,22 @@
-import { useSelector } from "react-redux";
+"use client"
 
-export default function AIResponseCard():JSX.Element | null{
-    const response = useSelector((state:RootState)=> state.ai.response)
+import { useGenerateFromGemini } from "@/hooks/useGemini"
 
-    if(!response) return null 
+export default function AIResponseCard() {
+  const { completion, isLoading } = useGenerateFromGemini()
 
-    return (
-        <div className="mt-6 p-6 bg-white rounded-lg shadow-md border">
-            <h2 className="text-lg font-semibold mb-2 text-blue-600">마음콩의 응답</h2>
-            <p className="text-gray-800 leading-relaxed whitespace-pre-line">{response}</p>
-        </div>
-    )
+  if (!completion && !isLoading) return null
+
+  return (
+    <div className="mt-6 p-6 bg-white rounded-lg shadow-md border animate-in fade-in duration-300">
+      <h2 className="text-lg font-semibold mb-2 text-blue-600 flex items-center gap-2">
+        {isLoading && (
+          <span className="inline-block w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
+        )}
+      </h2>
+      <p className="text-gray-800 leading-relaxed whitespace-pre-line">
+        {completion}
+      </p>
+    </div>
+  )
 }
