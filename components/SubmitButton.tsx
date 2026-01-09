@@ -20,25 +20,15 @@ export default function SubmitButton(): JSX.Element {
       return
     }
 
-    // ✅ 감정 + 일기를 하나의 prompt로 전달
     const prompt = `${diary}\n\n[감정: ${emotions.join(", ")}]에 대한한 공감과 위로가 담긴 짧은 문장을 작성해줘.`
 
     try {
-      const aiResponse = await generateAI.mutateAsync(prompt)
+      // Stream 시작
+      await generateAI.complete(prompt)
 
-      // ✅ 1. AI 응답을 Redux에 저장
-      dispatch(setAIResponse(aiResponse))
-
-      // ✅ 2. 피드에 추가
-      dispatch(
-        addFeed({
-          id: uuidv4(),
-          content: diary,
-          emotions,
-          aiResponse,
-          createdAt: new Date().toISOString(),
-        })
-      )
+      // 스트리밍이 완료된 후의 처리는 useEffect 등에서 처리하거나
+      // useCompletion의 onFinish 콜백을 활용해야 함.
+      // 여기서는 일단 트리거만 함.
     } catch (error) {
       console.error("AI 생성 실패", error)
       alert("AI 응답을 생성할 수 없습니다. 다시 시도해주세요.")
@@ -71,9 +61,9 @@ export default function SubmitButton(): JSX.Element {
       <button
         onClick={handleSubmit}
         className="bg-blue-600 text-white px-6 py-2 rounded-md"
-        disabled={generateAI.isPending}
+        disabled={generateAI.isLoading}
       >
-        {generateAI.isPending ? "작성 중..." : "작성 완료"}
+        {generateAI.isLoading ? "작성 중..." : "작성 완료"}
       </button>
       <button
         onClick={handleGenerateDummy}

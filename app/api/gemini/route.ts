@@ -1,19 +1,15 @@
-import { NextResponse } from 'next/server'
-import {GoogleGenAI} from '@google/genai'
-export async function POST(request: Request) {
-  const { content } = await request.json()
-    const ai = new GoogleGenAI({apiKey:process.env.GEMINI_API_KEY});
-    
-    const response = await ai.models.generateContent({
-        model: "gemini-2.0-flash",
-        contents: content,
-    });
+import { google } from "@ai-sdk/google"
+import { streamText } from "ai"
 
-    //const message = response?.candidates[0]?.content?.parts[0].text;
-    const message = response.candidates[0].content.parts[0].text
+export const maxDuration = 30
 
-    console.log(message)
+export async function POST(req: Request) {
+  const { prompt } = await req.json()
 
+  const result = streamText({
+    model: google("gemini-2.0-flash-exp"),
+    prompt,
+  })
 
-  return NextResponse.json({ message })
+  return result.toDataStreamResponse()
 }
