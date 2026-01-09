@@ -1,18 +1,16 @@
-import { setAIResponse } from "@/store/slices/aiSlice"
-import { addFeed } from "@/store/slices/feedSlice"
+import { createClient } from "@/utils/supabase/client"
 import { useGenerateFromGemini } from "@/hooks/useGemini"
-
-import type { RootState } from "@reduxjs/toolkit/query"
-import { useDispatch, useSelector } from "react-redux"
-import { v4 as uuidv4 } from "uuid"
 import { useGenerateDummyFeeds } from "@/hooks/useGenerateDummy"
+import { useDiary } from "@/app/context/DiaryContext"
+import { useFeed } from "@/context/FeedContext"
+import { v4 as uuidv4 } from "uuid"
 
 export default function SubmitButton(): JSX.Element {
-  const dispatch = useDispatch()
+  const supabase = createClient()
   const generateAI = useGenerateFromGemini()
   const generateDummy = useGenerateDummyFeeds()
-  const emotions = useSelector((state: RootState) => state.emotion)
-  const diary = useSelector((state: RootState) => state.diary.content)
+  const { diary, emotions, resetDiary } = useDiary()
+  const { refreshFeeds } = useFeed()
 
   const handleSubmit = async () => {
     if (!diary.trim()) {
@@ -39,17 +37,19 @@ export default function SubmitButton(): JSX.Element {
     try {
       const dummyFeeds = await generateDummy.mutateAsync()
 
-      dummyFeeds.forEach((item: { content: string; emotions: string[] }) => {
-        dispatch(
-          addFeed({
-            id: uuidv4(),
-            emotions: [""],
-            content: item.content,
-            aiResponse: "AI 답변은 빈 값입니다.",
-            createdAt: new Date().toISOString(),
-          })
-        )
-      })
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
+      console.log("Dummy generation triggered (Redux removed)")
+      alert("더미 생성은 현재 DB 연동 중입니다.")
+
+      // 실제 구현 시에는 user check 후 Promise.all 등을 사용해야 함
+      /*
+      if (user) {
+        // ... bulk insert logic
+      }
+      */
     } catch (e) {
       console.error("더미 생성 실패", e)
       alert("더미 데이터를 생성할 수 없음")

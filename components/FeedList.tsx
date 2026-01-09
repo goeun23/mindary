@@ -1,36 +1,17 @@
 // components/FeedList.tsx
 "use client"
-import { useSelector } from "react-redux"
+import { useFeed } from "@/context/FeedContext"
 import FeedCard from "./FeedCard"
-import type { RootState } from "@reduxjs/toolkit/query"
-import { useEffect, useState } from "react"
-
-// Next.js에서 fetch API로 데이터를 가져오려면, 컴포넌트를 비동기 상태로 두고 fetch를 await call로 불러온다.
 
 export default function FeedList() {
-  //let feedList = useSelector((state: RootState) => state.feed)
-  getDummyDiaryHistory()
-  const [feedList, setFeedList] = useState([])
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  const { feeds } = useFeed()
 
-  async function getDummyDiaryHistory() {
-    let dummy = await fetch("https://dummyjson.com/posts/search?q=love").then(
-      (res) => res.json()
-    )
-    //feedList = dummy.posts;
-    setFeedList(dummy.posts)
-  }
-
-  if (!feedList || feedList.length === 0) {
+  if (!feeds || feeds.length === 0) {
     return (
-      <span>
-        일기가 없습니다.
-        <button
-          onClick={getDummyDiaryHistory}
-          className="bg-gray-300 rounded-lg p-4"
-        >
-          dummy 불러오기
-        </button>
-      </span>
+      <div className="p-4 text-center text-gray-500">
+        작성된 일기가 없습니다.
+      </div>
     )
   }
 
@@ -39,7 +20,7 @@ export default function FeedList() {
       <div className="w-full max-w-md p-4 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-8 dark:bg-gray-800 dark:border-gray-700">
         <div className="flex items-center justify-between mb-4">
           <h5 className="text-xl font-bold leading-none text-gray-900 dark:text-white">
-            최근 일기{feedList.length}
+            최근 일기{feeds.length}
           </h5>
           <a
             href="#"
@@ -53,7 +34,7 @@ export default function FeedList() {
             role="list"
             className="divide-y divide-gray-200 dark:divide-gray-700"
           >
-            {feedList.map((item: any) => (
+            {feeds.map((item: any) => (
               <FeedCard item={item} key={item.id} />
             ))}
           </ul>
