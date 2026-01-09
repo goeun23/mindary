@@ -12,12 +12,22 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ko" className="h-full">
-      <body className="h-full overflow-hidden bg-gray-50 text-gray-800">
-        <Providers>
-          <div className="h-full overflow-y-auto scroll-smooth">{children}</div>
-        </Providers>
+    <html lang="ko">
+      <body>
+        <div id="wrapper" className='overflow-hidden w-full flex flex-col overflow-hidden bg-white-50 scroll-smooth'>
+          <Providers>
+            {children}
+          </Providers>
+        </div>
       </body>
+
     </html>
+    // <html lang="ko" className="h-full">
+    //   <body className="h-full overflow-hidden bg-gray-50 text-gray-800">
+    //     <Providers>
+    //       <div className="h-full overflow-y-auto scroll-smooth">{children}</div>
+    //     </Providers>
+    //   </body>
+    // </html>
   )
 }
