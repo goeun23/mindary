@@ -24,8 +24,14 @@ type FeedContextType = {
 
 const FeedContext = createContext<FeedContextType | null>(null)
 
-export function FeedProvider({ children }: { children: ReactNode }) {
-  const [feeds, setFeeds] = useState<FeedItem[]>([])
+export function FeedProvider({
+  children,
+  initialFeeds = [],
+}: {
+  children: ReactNode
+  initialFeeds?: FeedItem[]
+}) {
+  const [feeds, setFeeds] = useState<FeedItem[]>(initialFeeds)
   const supabase = createClient()
 
   const refreshFeeds = async () => {

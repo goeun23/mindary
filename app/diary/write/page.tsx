@@ -1,55 +1,23 @@
-// app/diary/write/page.tsx
-'use client'
+import { createClient } from "@/utils/supabase/server"
+import DiaryWriteView from "./DiaryWriteView"
+import { FeedProvider } from "@/context/FeedContext"
+import { Metadata } from "next"
 
-import DiaryInput from '@/components/DiaryInput'
-import EmotionSelector from '@/components/EmotionSelector'
-import SubmitButton from '@/components/SubmitButton'
-import AIResponseCard from '@/components/AIResponseCard'
-import Header from '@/components/Header'
-import type { RootState } from '@reduxjs/toolkit/query'
-import { useSelector } from 'react-redux'
+export const metadata: Metadata = {
+  title: "일기 쓰기 | 마음콩",
+  description: "오늘의 감정을 기록하고 AI 상담사의 위로를 받아보세요.",
+}
 
-import {Button} from 'flowbite-react'
+export default async function DiaryWritePage() {
+  const supabase = await createClient()
+  const { data: initialFeeds } = await supabase
+    .from("diaries")
+    .select("*")
+    .order("created_at", { ascending: false })
 
-import FeedList from '@/components/FeedList'
-import { EmotionAnalyzer } from '@/components/EmotionAnalayzer/EmotionAnalyzer'
-import { DiaryProvider } from '@/app/context/DiaryContext'
-
-export default function DiaryWritePage(): JSX.Element {
-    const feedList = useSelector((state:RootState)=> state.feed)
   return (
-    <DiaryProvider>
-    <main className="flex item-center flex-col align-middle">
-        <Header/>
-        <section>
-          <FeedList/>
-        </section>
-
-
-      <div className="flex justify-between mx-auto max-w-[1400px] px-4">
-        
-
-{/*         
-        <section className="w-full max-w-[600px] flex flex-col gap-6 py-8">
-        
-        
-          <div className="bg-white p-4 rounded-lg shadow-md">
-            <DiaryInput />
-            <EmotionSelector />
-            <SubmitButton />
-          </div>
-
-        
-          <AIResponseCard />
-
-          <EmotionAnalyzer/>
-        
-          <FeedList />
-
-        </section> */}
-
-      </div>
-    </main>
-    </DiaryProvider>
+    <FeedProvider initialFeeds={initialFeeds || []}>
+      <DiaryWriteView />
+    </FeedProvider>
   )
 }
